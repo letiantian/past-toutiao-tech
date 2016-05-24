@@ -69,6 +69,7 @@ $ sqlite3 foo.db
 
 ## 配置
 下面是Ubuntu下supervisor和nginx的配置示例：
+
 **/etc/supervisor/conf.d/past-toutiao-tech-server.conf**
 ```
 [program:past-toutiao-tech-server]
