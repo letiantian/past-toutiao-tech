@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <style type="text/css">
+        body {
+           background-color: wheat;
+        }
+        .containter {
+            margin: 0 auto;
+            width: 20%;
+            min-width: 600px;
+            margin-top: 40px;
+        }  
+        #content {
+            margin-top: 40px;
+        }
+        #content a {
+            color: #222;
+        }
+        #content a:hover{
+           text-decoration:underline;
+            background: none repeat scroll 0 0 #D0E8F4;
+            color: #187AAB;
+        }
+        #content span {
+            color: gray;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="containter">
+        <div class="form">
+            Date: <input type="text" id="datepicker"> | 
+            <button id="query">Query</button>
+        </div>
+        <div id="content">
+            
+        </div>
+    </div>
+    <script id="template" type="x-tmpl-mustache">
+        {{#data}}
+        <p>
+            <a href="{{url}}">{{title}}</a><br/>
+            <span> {{abstract}} ... </span>
+        </p>
+        {{/data}}
+        {{^data}}No data :({{/data}}
+    </script>
+
+    <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+    <script type="text/javascript" src="https://code.jquery.com/ui/1.11.3/jquery-ui.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://code.jquery.com/ui/1.11.3/themes/smoothness/jquery-ui.css">
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/2.2.0/mustache.js"></script>
+    <script src="/js/moment.min.js"></script>
+    <script src="/js/moment-timezone-with-data.min.js"></script>
+
+    <script>
+        var isDate = function(date) {
+            return (new Date(date) !== "Invalid Date" && !isNaN(new Date(date)) ) ? true : false;
+        };
+
+        var getTimezone = function() {
+            return moment.tz.guess();
+        };
+
+        var encodeQueryData = function(data)
+        {
+            var ret = [];
+            for (var d in data) {
+                if (data.hasOwnProperty(d))
+                    ret.push(encodeURIComponent(d) + "=" + encodeURIComponent(data[d]));
+            }
+            return ret.join("&");
+        };
+
+        $(function() {
+            $( "#datepicker" ).datepicker();
+            $( "#query" ).on('click', function(){
+                var siteId = $('#site-select').val();
+                var d = $('#datepicker').val();
+                if (isDate(d)) {
+                    var date = new Date(d);
+                    var year = date.getYear() + 1900;
+                    var month = date.getMonth() + 1;
+                    var day = date.getDate();
+                    var timezone = getTimezone();
+
+                    var params = {year: year, month: month, day: day, timezone: timezone};
+                    console.log(params);
+
+                    $.ajax({
+                        method: "GET",
+                        url: "/content?"+encodeQueryData(params),
+                    })
+                    .done(function( msg ) {
+                        console.log( msg );
+                        if (!msg.error) {
+                            var template = $('#template').html();
+                            Mustache.parse(template);   // optional, speeds up future uses
+                            var rendered = Mustache.render(template, msg);
+                            $('#content').html(rendered);
+                        }
+                    });
+                } else {
+                    alert('please input date');
+                }
+            });
+        });
+
+    </script>
+</body>
+</html>
+
+
